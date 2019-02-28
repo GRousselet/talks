@@ -1,0 +1,101 @@
+---
+title: "Bordeaux 2019: examples"
+author: "Guillaume A. Rousselet"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    fig_caption: no
+    number_sections: no
+    toc: yes
+    toc_depth: 2
+---
+
+```{r message=FALSE, warning=FALSE}
+# dependencies
+library(pwr)
+# library(ggplot2)
+# library(tibble)
+# library(tidyr)
+# library(cowplot)
+# library(retimes)
+source("./functions.txt")
+# library(beepr)
+```
+
+```{r}
+sessionInfo()
+```
+
+# Power simulation
+
+We assume a certain difference and sd for one-sample effect.
+
+## Formula solution
+```{r}
+diff <- 1
+sd <- 2
+res <- pwr.t.test(d = abs(diff)/sd, sig.level = 0.05, power = .80, type = "one.sample")
+```
+
+To achieve a power of 80%, we need about `r ceiling(res[[1]])` participants (rounded up).
+
+## Simulation check
+```{r}
+set.seed(21)
+# a <- rnorm(20)
+# comp.pval(a)
+# t.test(a)
+
+nsim <- 10000
+n <- 34
+mu <- 1
+sd <- 2
+alpha <- 0.05
+mean(apply(matrix(rnorm(nsim * n, mean = mu, sd = sd), nrow = nsim), 1, comp.pval) <= alpha)
+```
+
+## Power curve
+```{r}
+nseq <- seq(5,100,5)
+```
+
+
+# Replication crisis?
+
+Greenland et al. 2016:
+"Despite its shortcomings for interpreting current data, power can be useful for designing studies and for understanding why replication of “statistical significance” will often fail even under ideal conditions. Studies are often designed or claimed to have 80% power against a key alternative when using a 0.05 signifi- cance level, although in execution often have less power due to unanticipated problems such as low subject recruitment. Thus, if the alternative is correct and the actual power of two studies is 80%, the chance that the studies will both show P ≤ 0.05 will at best be only 0.80(0.80) = 64%; furthermore, the chance that one study shows P ≤ 0.05 and the other does not (and thus will be misinterpreted as showing conflicting results) is 2(0.80)0.20 = 32% or about 1 chance in 3. Similar calculations taking account of typical problems suggest that one could antic- ipate a “replication crisis” even if there were no publication or reporting bias, simply because current design and testing con- ventions treat individual study results as dichotomous outputs of “significant”/“nonsignificant” or “reject”/“accept.”"
+
+So, for 90% power, the chance that the studies will both show P ≤ 0.05 will at best be only 0.90(0.90) = 81%
+
+## Simulation
+```{r}
+set.seed(777)
+
+nsim <- 50000
+
+# experiment 1
+pval1 <- apply(matrix(rnorm(nsim * n, mean = mu, sd = sd), nrow = nsim), 1, comp.pval) <= alpha
+
+# experiment 1
+pval2 <- apply(matrix(rnorm(nsim * n, mean = mu, sd = sd), nrow = nsim), 1, comp.pval) <= alpha
+```
+
+Based on our simulation, if the alternative is correct and the actual power of two studies is 80%, the chance that the studies will both show P ≤ 0.05 will at best be `r  mean((pval1 + pval2)==2)`.
+
+The chance that one study shows P ≤ 0.05 and the other does not is `r  mean((pval1 + pval2)==1)`
+
+# Estimation precision
+```{r}
+
+```
+
+
+# Correlation sampling distribution
+
+```{r}
+
+```
+
+# References
+Greenland, S., Senn, S.J., Rothman, K.J., Carlin, J.B., Poole, C., Goodman, S.N. & Altman, D.G. (2016) Statistical tests, P values, confidence intervals, and power: a guide to misinterpretations. Eur J Epidemiol, 31, 337-350.
+

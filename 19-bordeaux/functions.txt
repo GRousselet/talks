@@ -1,0 +1,7 @@
+comp.pval <- function(x,null.value=0){
+se <- sqrt(var(x))/sqrt(length(x))
+df <- length(x)-1
+test <- (mean(x)-null.value)/se
+pval <- 2*(1-pt(abs(test),df))
+pval
+}
