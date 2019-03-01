@@ -5,3 +5,4 @@ test <- (mean(x)-null.value)/se
 pval <- 2*(1-pt(abs(test),df))
 pval
 }
+
