@@ -21,6 +21,7 @@ library(ggplot2)
 library(tibble)
 library(retimes)
 source("./functions.txt")
+load("./data/flp_exg_param_interp.RData")
 ```
 
 ```{r}
@@ -41,6 +42,7 @@ res <- pwr.t.test(d = abs(diff)/sd, sig.level = 0.05, power = .80, type = "one.s
 To achieve a power of 80%, we need about `r ceiling(res[[1]])` participants (rounded up).
 
 ## Simulation check
+We get the expected power.
 ```{r}
 set.seed(21)
 # a <- rnorm(20)
@@ -73,14 +75,17 @@ df <- tibble(Participants = nseq,
 
 ggplot(df, aes(x = Participants, y = Power)) + theme_classic() +
   geom_line(size = 1.5) +
-  geom_abline(slope = 0, intercept = 0.80) +
-  geom_abline(slope = 0, intercept = 0.90) +
+  # geom_abline(slope = 0, intercept = 0.80) +
+  geom_segment(x = 0, xend = approx(pres, nseq, 0.80)$y, y = 0.8, yend = 0.8) +
+  geom_segment(x = approx(pres, nseq, 0.80)$y, xend = approx(pres, nseq, 0.80)$y, 
+               y = 0.8, yend = 0,
+               arrow = arrow(length = unit(0.3,"cm"))) +
   theme(axis.title.x = element_text(size = 18),
     axis.text = element_text(size = 16, colour = "black"), axis.title.y = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 18)) +
   scale_x_continuous(breaks = seq(10, 100, 10)) + 
-  scale_y_continuous(breaks = seq(0, 1, .1))
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .1))
 ```
 
 Using the approximation technique, we find that to achieve a power of 80%, we need about `r ceiling(approx(pres, nseq, 0.80)$y)` participants (rounded up).
@@ -88,8 +93,9 @@ Unsurprisingly we find the same value as in the previous calculation, but it's a
 
 ## Replication crisis?
 
-Greenland et al. 2016:
-"Despite its shortcomings for interpreting current data, power can be useful for designing studies and for understanding why replication of “statistical significance” will often fail even under ideal conditions. Studies are often designed or claimed to have 80% power against a key alternative when using a 0.05 signifi- cance level, although in execution often have less power due to unanticipated problems such as low subject recruitment. Thus, if the alternative is correct and the actual power of two studies is 80%, the chance that the studies will both show P ≤ 0.05 will at best be only 0.80(0.80) = 64%; furthermore, the chance that one study shows P ≤ 0.05 and the other does not (and thus will be misinterpreted as showing conflicting results) is 2(0.80)0.20 = 32% or about 1 chance in 3. Similar calculations taking account of typical problems suggest that one could antic- ipate a “replication crisis” even if there were no publication or reporting bias, simply because current design and testing con- ventions treat individual study results as dichotomous outputs of “significant”/“nonsignificant” or “reject”/“accept.”"
+"Despite its shortcomings for interpreting current data, power can be useful for designing studies and for understanding why replication of “statistical significance” will often fail even under ideal conditions. Studies are often designed or claimed to have 80% power against a key alternative when using a 0.05 significance level, although in execution often have less power due to unanticipated problems such as low subject recruitment. Thus, if the alternative is correct and the actual power of two studies is 80%, the chance that the studies will both show P ≤ 0.05 will at best be only 0.80(0.80) = 64%; furthermore, the chance that one study shows P ≤ 0.05 and the other does not (and thus will be misinterpreted as showing conflicting results) is 2(0.80)0.20 = 32% or about 1 chance in 3. Similar calculations taking account of typical problems suggest that one could anticipate a “replication crisis” even if there were no publication or reporting bias, simply because current design and testing con- ventions treat individual study results as dichotomous outputs of “significant”/“nonsignificant” or “reject”/“accept.”"
+
+Greenland, S., Senn, S.J., Rothman, K.J., Carlin, J.B., Poole, C., Goodman, S.N. & Altman, D.G. (2016) Statistical tests, P values, confidence intervals, and power: a guide to misinterpretations. Eur J Epidemiol, 31, 337-350.
 
 So, for 90% power, the chance that the studies will both show P ≤ 0.05 will at best be only 0.90(0.90) = 81%
 
@@ -114,13 +120,12 @@ The chance that one study shows P ≤ 0.05 and the other does not is `r  mean((p
 
 ## Generate population
 
-We use ex-Gaussian parameters from the FLP dataset to generate realistic level 1 reaction time differences in a lexical decision task. For details see:
-https://psyarxiv.com/3y54r/
+We use ex-Gaussian parameters from the FLP dataset to generate realistic level 1 reaction time differences in a lexical decision task. For details see this [paper](https://psyarxiv.com/3y54r/). Here we simulate a population with a relatively small effect size.
 
 ```{r}
 set.seed(1)
 pop.size <- 100000 # number of participants
-load('./flp_exg_param_interp.RData')
+load('./data/flp_exg_param_interp.RData')
 Np.total <- nrow(exg_param_interp)
 nt <- 100 # trials per condition
 
@@ -148,7 +153,11 @@ skew(pop)
 
 ### Illustrate level 1 population
 ```{r}
-hist(pop, 50)
+hist(pop, 50, freq = FALSE, xlim = c(-200, 200), col = "grey90",
+     xlab = "Reaction time differences in ms",
+     main = paste0("Population values (mean=",round(mean(pop),digits=1),", sd=",round(sd(pop),digits=1),", es=",round(mean(pop)/sd(pop),digits=2),")"))
+abline(v = mean(pop), col="red", lwd=5, lty=5)
+ggsave(filename = 'pop1.pdf')
 ```
 
 ## Pilot experiment
@@ -159,6 +168,14 @@ pilot.res <- sample(pop, n, replace = TRUE)
 mean(pilot.res)
 sd(pilot.res)
 mean(pilot.res) / sd(pilot.res)
+```
+
+```{r}
+hist(pop, 50, freq = FALSE, xlim = c(-200, 200), col = "grey90",
+     xlab = "Reaction time differences in ms",
+     main = paste0("Population values (mean=",round(mean(pop),digits=1),", sd=",round(sd(pop),digits=1),", es=",round(mean(pop)/sd(pop),digits=2),")"))
+abline(v = mean(pop), col="red", lwd=5, lty=5)
+abline(v = mean(pilot.res), col="purple", lwd=4, lty=1)
 ```
 
 ## Formula solution
@@ -204,14 +221,16 @@ df <- tibble(Participants = nseq,
 
 ggplot(df, aes(x = Participants, y = Power)) + theme_classic() +
   geom_line(size = 1.5) +
-  geom_abline(slope = 0, intercept = 0.80) +
-  geom_abline(slope = 0, intercept = 0.90) +
+  geom_segment(x = 0, xend = approx(pres, nseq, 0.80)$y, y = 0.8, yend = 0.8) +
+  geom_segment(x = approx(pres, nseq, 0.80)$y, xend = approx(pres, nseq, 0.80)$y, 
+               y = 0.8, yend = 0,
+               arrow = arrow(length = unit(0.3,"cm"))) +
   theme(axis.title.x = element_text(size = 18),
     axis.text = element_text(size = 16, colour = "black"), axis.title.y = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 18)) +
   scale_x_continuous(breaks = seq(5, 30, 5)) + 
-  scale_y_continuous(breaks = seq(0, 1, .1))
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .1))
 ```
 
 Using the approximation technique, we find that to achieve a power of 80%, we need about `r ceiling(approx(pres, nseq, 0.80)$y)` participants (rounded up).
@@ -251,14 +270,16 @@ df <- tibble(Participants = nseq,
 
 ggplot(df, aes(x = Participants, y = Power)) + theme_classic() +
   geom_line(size = 1.5) +
-  geom_abline(slope = 0, intercept = 0.80) +
-  geom_abline(slope = 0, intercept = 0.90) +
+geom_segment(x = 0, xend = approx(pres, nseq, 0.80)$y, y = 0.8, yend = 0.8) +
+  geom_segment(x = approx(pres, nseq, 0.80)$y, xend = approx(pres, nseq, 0.80)$y, 
+               y = 0.8, yend = 0,
+               arrow = arrow(length = unit(0.3,"cm"))) +
   theme(axis.title.x = element_text(size = 18),
     axis.text = element_text(size = 12, colour = "black"), axis.title.y = element_text(size = 18),
     legend.text = element_text(size = 16),
     legend.title = element_text(size = 18)) +
   scale_x_continuous(breaks = seq(10, 200, 10)) + 
-  scale_y_continuous(breaks = seq(0, 1, .1))
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .1))
 ```
 
 Using the approximation technique, we find that to achieve a power of 80%, we need about `r ceiling(approx(pres, nseq, 0.80)$y)` participants (rounded up).
@@ -285,93 +306,4 @@ Based on our simulation, if the alternative is correct and the actual power of t
 
 The chance that one study shows P ≤ 0.05 and the other does not is `r  mean((pval1 + pval2)==1)`
 
-## Estimation precision
-
-### Generate data
-```{r eval=FALSE}
-set.seed(666)
-
-preseq <- c(seq(5, 20, 5)) # precision bounds
-Npre <- length(preseq)
-ptseq <- seq(10, 150 ,10) # number of participants
-Npt <- length(ptseq)
-Nsim <- 10000
-
-pop.diff.m <- mean(pop)
-pop.diff.md <- median(pop)
-
-# declare result matrices
-res.pre.m <- matrix(data = 0, nrow = Npre, ncol = Npt)
-res.pre.md <- matrix(data = 0, nrow = Npre, ncol = Npt)
-
-for(iter.pt in 1:Npt){ # number of participants
- 
-  # print(paste0("Sample size ",iter.pt," out of ",Npt,"..."))
-    
-  mc.samp <- matrix(sample(pop, ptseq[iter.pt] * Nsim, replace = TRUE), nrow = Nsim)
-    diff.m <- apply(mc.samp, 1, mean)
-    diff.md <- apply(mc.samp, 1, median)
-  
-  # Probability of getting group estimate at most x ms from population value
-  for(iter.p in 1:Npre){
-    res.pre.m[iter.p, iter.pt] <- mean( abs(diff.m - pop.diff.m) <= (preseq[iter.p]) )
-    res.pre.md[iter.p, iter.pt] <- mean( abs(diff.md - pop.diff.md) <= (preseq[iter.p]) )
-  }
-
-} # number of participants
-```
-
-### Precision results: mean
-```{r}
-df <- tibble(`Proportion` = as.vector(res.pre.m),
-             `Precision` = rep(preseq, Npt),
-             `N` = rep(ptseq, each = Npre))
-
-df$Precision <- as.character(df$Precision)
-df$Precision <- factor(df$Precision, levels=unique(df$Precision))
-
-# make plot
-p <- ggplot(df, aes(x=N, y=Proportion)) + theme_classic() +
-   geom_line(aes(colour = Precision), size = 1) + 
-  scale_color_viridis_d() +
-  scale_x_continuous(breaks=ptseq) + 
-  scale_y_continuous(breaks=seq(0, 1, 0.1)) +
-  coord_cartesian(ylim=c(0, 1)) +
-  theme(plot.title = element_text(size=20),
-        axis.title.x = element_text(size = 18),
-        axis.text = element_text(size = 14, colour="black"),
-        axis.title.y = element_text(size = 18),
-        legend.key.width = unit(1.5,"cm"),
-        legend.position = c(0.8, 0.3),
-        legend.text=element_text(size = 16),
-        legend.title=element_text(size = 18),
-        panel.background = element_rect(fill="grey90")) +
-  labs(x = "Number of participants", y = "Proportion of estimates") +
-  guides(colour = guide_legend(override.aes = list(size=3), # make thicker legend lines
-    title = "Precision \n(within +/- ms)")) + # change legend title
-  ggtitle("Measurement precision: mean") 
-p
-```
-
-With n = `r ceiling(approx(pres, nseq, 0.80)$y)`, the group estimate will be, in the long run, within 5 ms of the true mean in `r 100*(approx(y=res.pre.m[1,],x=ptseq,xout=ceiling(approx(pres, nseq, 0.80)$y))$y)` % of experiments.
-
-# Correlation sampling distribution
-
-## Generate data
-```{r}
-
-```
-
-## Plot results
-```{r}
-
-```
-
-## Condition on P <= 0.05
-```{r}
-
-```
-
-# References
-Greenland, S., Senn, S.J., Rothman, K.J., Carlin, J.B., Poole, C., Goodman, S.N. & Altman, D.G. (2016) Statistical tests, P values, confidence intervals, and power: a guide to misinterpretations. Eur J Epidemiol, 31, 337-350.
 
