@@ -1,3 +1,6 @@
+[Rencontre scientifique](https://sygefor.reseau-urfist.fr/#/training/7705/8525/7338a781b57bf45847c702bfd05b2a80) :
+Repenser la robustesse et la fiabilité en recherche : les chercheurs face à la crise de la reproductibilité
+
 # A simple cure to the p < 0.05 disease
 
 In this talk, I will argue that there is no replicability crisis, just a collection of bad habits and wrong expectations from all involved in the research enterprise. The main habit is the use of P values and confidence intervals to dichotomise results as “significant” or “not significant”. This habit stems from poor training in statistics and unrealistic expectations about our research methods. The cure to the dichotomy madness involves important steps:
