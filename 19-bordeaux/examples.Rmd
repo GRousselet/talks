@@ -157,7 +157,6 @@ hist(pop, 50, freq = FALSE, xlim = c(-200, 200), col = "grey90",
      xlab = "Reaction time differences in ms",
      main = paste0("Population values (mean=",round(mean(pop),digits=1),", sd=",round(sd(pop),digits=1),", es=",round(mean(pop)/sd(pop),digits=2),")"))
 abline(v = mean(pop), col="red", lwd=5, lty=5)
-ggsave(filename = 'pop1.pdf')
 ```
 
 ## Pilot experiment
@@ -285,6 +284,32 @@ geom_segment(x = 0, xend = approx(pres, nseq, 0.80)$y, y = 0.8, yend = 0.8) +
 Using the approximation technique, we find that to achieve a power of 80%, we need about `r ceiling(approx(pres, nseq, 0.80)$y)` participants (rounded up).
 
 Using the pilot study, we set n = `r ceiling(res[[1]])`, achieving a power of `r round(approx(nseq, pres, res[[1]])$y, digits = 2)`.
+
+### Illustrate real power
+```{r}
+df <- tibble(Participants = nseq, 
+             Power = pres)
+
+ggplot(df, aes(x = Participants, y = Power)) + theme_classic() +
+  geom_line(size = 1.5) +
+  # real power
+geom_segment(x = 0, xend = approx(pres, nseq, 0.80)$y, y = 0.8, yend = 0.8) +
+  geom_segment(x = approx(pres, nseq, 0.80)$y, xend = approx(pres, nseq, 0.80)$y, 
+               y = 0.8, yend = 0,
+               arrow = arrow(length = unit(0.3,"cm"))) +
+  # achieved power
+  geom_segment(x = 0, xend = ceiling(res[[1]]),
+               y = approx(nseq, pres, res[[1]])$y, yend = approx(nseq, pres, res[[1]])$y,
+               arrow = arrow(length = unit(0.3,"cm"), ends = "first")) +
+  geom_segment(y = approx(nseq, pres, res[[1]])$y, yend = 0, 
+               x = ceiling(res[[1]]), xend = ceiling(res[[1]])) +
+  theme(axis.title.x = element_text(size = 18),
+    axis.text = element_text(size = 12, colour = "black"), axis.title.y = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.title = element_text(size = 18)) +
+  scale_x_continuous(breaks = seq(10, 200, 10)) + 
+  scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, .1))
+```
 
 ## Replication crisis?
 

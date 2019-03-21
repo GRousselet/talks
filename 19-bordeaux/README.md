@@ -7,3 +7,18 @@ In this talk, I will argue that there is no replicability crisis, just a collect
 - to accept that no single experiment can establish a new phenomenon;
 - to match statistical tools to empirical questions, instead of following the herd.  
 
+The R code for the numerical examples in the talk are provided [here](docs/examples.md).
+
+Other examples are from these blog posts:
+
+- [Small n correlations cannot be trusted](https://garstats.wordpress.com/2018/06/01/smallncorr/)
+
+- [Small n correlations + p values = disaster](https://garstats.wordpress.com/2018/06/22/corrcondpval/)
+
+- [What can we learn from 10,000 experiments?](https://garstats.wordpress.com/2018/01/24/10000/)
+
+- [Hierarchical shift function: a powerful alternative to the t-test](https://garstats.wordpress.com/2019/02/21/hsf/)
+
+From a [workshop](https://github.com/GRousselet/teaching/tree/master/19-bordeaux) on robust statistics given in Bordeaux.
+
+From the `rogme` R package [documentation](https://github.com/GRousselet/rogme). 
